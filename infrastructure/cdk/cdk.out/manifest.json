@@ -1,0 +1,352 @@
+{
+  "version": "41.0.0",
+  "artifacts": {
+    "CdkStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "CdkStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "CdkStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://unknown-account/unknown-region",
+      "properties": {
+        "templateFile": "CdkStack.template.json",
+        "terminationProtection": false,
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/77779b7f8d2b245ee7f18e612b8d17b46e17e0d8fec5e9869bb9218bec9a534c.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "CdkStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-${AWS::Region}",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "CdkStack.assets"
+      ],
+      "metadata": {
+        "/CdkStack/CdkQueue": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "visibilityTimeout": "*"
+            }
+          }
+        ],
+        "/CdkStack/CdkQueue/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CdkQueueBA7F247D"
+          }
+        ],
+        "/CdkStack/CdkQueue/Policy": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "queues": [
+                "*"
+              ]
+            }
+          }
+        ],
+        "/CdkStack/CdkQueue/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CdkQueuePolicy9CB1D142"
+          }
+        ],
+        "/CdkStack/CdkQueue/CdkStackCdkTopic7868E982": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "topic": "*",
+              "endpoint": "*",
+              "protocol": "sqs",
+              "rawMessageDelivery": "*",
+              "filterPolicy": "*",
+              "filterPolicyWithMessageBody": "*",
+              "region": "*",
+              "deadLetterQueue": "*"
+            }
+          }
+        ],
+        "/CdkStack/CdkQueue/CdkStackCdkTopic7868E982/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CdkQueueCdkStackCdkTopic7868E9827092CD19"
+          }
+        ],
+        "/CdkStack/CdkTopic": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          }
+        ],
+        "/CdkStack/CdkTopic/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CdkTopic7E7E1214"
+          }
+        ],
+        "/CdkStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/CdkStack/CDKMetadata/Condition": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadataAvailable"
+          }
+        ],
+        "/CdkStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/CdkStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "CdkStack"
+    },
+    "IoTCoreStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "IoTCoreStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "IoTCoreStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://514760581321/ap-northeast-1",
+      "properties": {
+        "templateFile": "IoTCoreStack.template.json",
+        "terminationProtection": false,
+        "tags": {
+          "Environment": "Development",
+          "Project": "NFCVisitManagement"
+        },
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::514760581321:role/cdk-hnb659fds-deploy-role-514760581321-ap-northeast-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::514760581321:role/cdk-hnb659fds-cfn-exec-role-514760581321-ap-northeast-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-514760581321-ap-northeast-1/497d5cc9633a0a95aa946f4ce467a02fdf86a1bb15c5ae366df76f7631358edd.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "IoTCoreStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::514760581321:role/cdk-hnb659fds-lookup-role-514760581321-ap-northeast-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "IoTCoreStack.assets"
+      ],
+      "metadata": {
+        "/IoTCoreStack": [
+          {
+            "type": "aws:cdk:stack-tags",
+            "data": [
+              {
+                "Key": "Environment",
+                "Value": "Development"
+              },
+              {
+                "Key": "Project",
+                "Value": "NFCVisitManagement"
+              }
+            ]
+          }
+        ],
+        "/IoTCoreStack/EventDataTable": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "tableName": "*",
+              "partitionKey": {
+                "name": "*",
+                "type": "S"
+              },
+              "sortKey": {
+                "name": "*",
+                "type": "S"
+              },
+              "billingMode": "PAY_PER_REQUEST",
+              "removalPolicy": "destroy"
+            }
+          },
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "EventDataTable8B81539D"
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addGlobalSecondaryIndex": [
+                {
+                  "indexName": "*",
+                  "partitionKey": {
+                    "name": "*",
+                    "type": "S"
+                  },
+                  "projectionType": "ALL"
+                }
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addGlobalSecondaryIndex": [
+                {
+                  "indexName": "*",
+                  "partitionKey": {
+                    "name": "*",
+                    "type": "S"
+                  },
+                  "projectionType": "ALL"
+                }
+              ]
+            }
+          }
+        ],
+        "/IoTCoreStack/EventDataTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "EventDataTable8B81539D"
+          }
+        ],
+        "/IoTCoreStack/EventDataTable/ScalingRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          }
+        ],
+        "/IoTCoreStack/NFCThing-booth-1": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "NFCThingbooth1"
+          }
+        ],
+        "/IoTCoreStack/NFCThing-booth-2": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "NFCThingbooth2"
+          }
+        ],
+        "/IoTCoreStack/NFCIoTPolicy": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "NFCIoTPolicy"
+          }
+        ],
+        "/IoTCoreStack/IoTRuleRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "assumedBy": {
+                "principalAccount": "*",
+                "assumeRoleAction": "*"
+              },
+              "inlinePolicies": "*"
+            }
+          }
+        ],
+        "/IoTCoreStack/IoTRuleRole/ImportIoTRuleRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          }
+        ],
+        "/IoTCoreStack/IoTRuleRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTRuleRole7CB25599"
+          }
+        ],
+        "/IoTCoreStack/VisitRule": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VisitRule"
+          }
+        ],
+        "/IoTCoreStack/IoTThingName-booth-1": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTThingNamebooth1"
+          }
+        ],
+        "/IoTCoreStack/IoTThingName-booth-2": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTThingNamebooth2"
+          }
+        ],
+        "/IoTCoreStack/IoTPolicyName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTPolicyName"
+          }
+        ],
+        "/IoTCoreStack/DynamoDBTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DynamoDBTableName"
+          }
+        ],
+        "/IoTCoreStack/IoTEndpoint": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTEndpoint"
+          }
+        ],
+        "/IoTCoreStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/IoTCoreStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/IoTCoreStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "IoTCoreStack"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  },
+  "minimumCliVersion": "2.1005.0"
+}

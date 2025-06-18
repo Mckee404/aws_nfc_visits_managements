@@ -1,0 +1,21 @@
+{
+  "version": "41.0.0",
+  "files": {
+    "497d5cc9633a0a95aa946f4ce467a02fdf86a1bb15c5ae366df76f7631358edd": {
+      "displayName": "IoTCoreStack Template",
+      "source": {
+        "path": "IoTCoreStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "514760581321-ap-northeast-1": {
+          "bucketName": "cdk-hnb659fds-assets-514760581321-ap-northeast-1",
+          "objectKey": "497d5cc9633a0a95aa946f4ce467a02fdf86a1bb15c5ae366df76f7631358edd.json",
+          "region": "ap-northeast-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::514760581321:role/cdk-hnb659fds-file-publishing-role-514760581321-ap-northeast-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}
