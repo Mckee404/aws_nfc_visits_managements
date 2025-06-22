@@ -1,0 +1,561 @@
+{
+  "version": "44.0.0",
+  "artifacts": {
+    "IoTCoreStack.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "IoTCoreStack.assets.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+      }
+    },
+    "IoTCoreStack": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://514760581321/ap-northeast-1",
+      "properties": {
+        "templateFile": "IoTCoreStack.template.json",
+        "terminationProtection": false,
+        "tags": {
+          "Environment": "Development",
+          "Project": "NFCVisitManagement"
+        },
+        "validateOnSynth": false,
+        "assumeRoleArn": "arn:${AWS::Partition}:iam::514760581321:role/cdk-hnb659fds-deploy-role-514760581321-ap-northeast-1",
+        "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::514760581321:role/cdk-hnb659fds-cfn-exec-role-514760581321-ap-northeast-1",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-514760581321-ap-northeast-1/f1541416388618383d861ce9e73710fcb1c2e1f283eb116e7c2e6766b45c2849.json",
+        "requiresBootstrapStackVersion": 6,
+        "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
+        "additionalDependencies": [
+          "IoTCoreStack.assets"
+        ],
+        "lookupRole": {
+          "arn": "arn:${AWS::Partition}:iam::514760581321:role/cdk-hnb659fds-lookup-role-514760581321-ap-northeast-1",
+          "requiresBootstrapStackVersion": 8,
+          "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version"
+        }
+      },
+      "dependencies": [
+        "IoTCoreStack.assets"
+      ],
+      "metadata": {
+        "/IoTCoreStack": [
+          {
+            "type": "aws:cdk:stack-tags",
+            "data": [
+              {
+                "Key": "Environment",
+                "Value": "Development"
+              },
+              {
+                "Key": "Project",
+                "Value": "NFCVisitManagement"
+              }
+            ]
+          }
+        ],
+        "/IoTCoreStack/EventDataTable": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "tableName": "*",
+              "partitionKey": {
+                "name": "*",
+                "type": "S"
+              },
+              "sortKey": {
+                "name": "*",
+                "type": "S"
+              },
+              "billingMode": "PAY_PER_REQUEST",
+              "removalPolicy": "destroy"
+            }
+          },
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": {
+              "Ref": "EventDataTable8B81539D"
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addGlobalSecondaryIndex": [
+                {
+                  "indexName": "*",
+                  "partitionKey": {
+                    "name": "*",
+                    "type": "S"
+                  },
+                  "projectionType": "ALL"
+                }
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addGlobalSecondaryIndex": [
+                {
+                  "indexName": "*",
+                  "partitionKey": {
+                    "name": "*",
+                    "type": "S"
+                  },
+                  "projectionType": "ALL"
+                }
+              ]
+            }
+          }
+        ],
+        "/IoTCoreStack/EventDataTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "EventDataTable8B81539D"
+          }
+        ],
+        "/IoTCoreStack/EventDataTable/ScalingRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          }
+        ],
+        "/IoTCoreStack/NFCIoTPolicy": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "NFCIoTPolicy"
+          }
+        ],
+        "/IoTCoreStack/CertHandlerLambda": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "code": "*",
+              "timeout": "*",
+              "memorySize": "*",
+              "environment": "*",
+              "architecture": "*"
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "code": "*",
+              "timeout": "*",
+              "memorySize": "*",
+              "environment": "*",
+              "architecture": "*"
+            }
+          }
+        ],
+        "/IoTCoreStack/CertHandlerLambda/ServiceRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "assumedBy": {
+                "principalAccount": "*",
+                "assumeRoleAction": "*"
+              },
+              "managedPolicies": [
+                {
+                  "managedPolicyArn": "*"
+                }
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addToPrincipalPolicy": [
+                {}
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachInlinePolicy": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachInlinePolicy": [
+                "*"
+              ]
+            }
+          }
+        ],
+        "/IoTCoreStack/CertHandlerLambda/ServiceRole/ImportServiceRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          }
+        ],
+        "/IoTCoreStack/CertHandlerLambda/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CertHandlerLambdaServiceRoleA08797B0"
+          }
+        ],
+        "/IoTCoreStack/CertHandlerLambda/ServiceRole/DefaultPolicy": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachToRole": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachToRole": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addStatements": [
+                {}
+              ]
+            }
+          }
+        ],
+        "/IoTCoreStack/CertHandlerLambda/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CertHandlerLambdaServiceRoleDefaultPolicy6AFE3F98"
+          }
+        ],
+        "/IoTCoreStack/CertHandlerLambda/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CertHandlerLambdaC1626125"
+          }
+        ],
+        "/IoTCoreStack/CertCustomResourceProvider/framework-onEvent": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "code": "*",
+              "description": "*",
+              "runtime": "*",
+              "handler": "*",
+              "timeout": "*",
+              "logGroup": "*",
+              "vpc": "*",
+              "vpcSubnets": "*",
+              "securityGroups": "*",
+              "role": "*",
+              "functionName": "*",
+              "environmentEncryption": "*"
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addEnvironment": [
+                "*",
+                "*"
+              ]
+            }
+          }
+        ],
+        "/IoTCoreStack/CertCustomResourceProvider/framework-onEvent/ServiceRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": {
+              "assumedBy": {
+                "principalAccount": "*",
+                "assumeRoleAction": "*"
+              },
+              "managedPolicies": [
+                {
+                  "managedPolicyArn": "*"
+                }
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addToPrincipalPolicy": [
+                {}
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachInlinePolicy": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachInlinePolicy": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addToPrincipalPolicy": [
+                {}
+              ]
+            }
+          }
+        ],
+        "/IoTCoreStack/CertCustomResourceProvider/framework-onEvent/ServiceRole/ImportServiceRole": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          }
+        ],
+        "/IoTCoreStack/CertCustomResourceProvider/framework-onEvent/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CertCustomResourceProviderframeworkonEventServiceRoleD598489B"
+          }
+        ],
+        "/IoTCoreStack/CertCustomResourceProvider/framework-onEvent/ServiceRole/DefaultPolicy": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachToRole": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "attachToRole": [
+                "*"
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addStatements": [
+                {}
+              ]
+            }
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": {
+              "addStatements": [
+                {}
+              ]
+            }
+          }
+        ],
+        "/IoTCoreStack/CertCustomResourceProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CertCustomResourceProviderframeworkonEventServiceRoleDefaultPolicy535D66D6"
+          }
+        ],
+        "/IoTCoreStack/CertCustomResourceProvider/framework-onEvent/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CertCustomResourceProviderframeworkonEvent683F20D8"
+          }
+        ],
+        "/IoTCoreStack/NFCThing-booth-1": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "NFCThingbooth1"
+          }
+        ],
+        "/IoTCoreStack/CustomCertResource-booth-1": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          }
+        ],
+        "/IoTCoreStack/CustomCertResource-booth-1/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCertResourcebooth1"
+          }
+        ],
+        "/IoTCoreStack/PolicyAttachment-booth-1": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "PolicyAttachmentbooth1"
+          }
+        ],
+        "/IoTCoreStack/ThingAttachment-booth-1": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ThingAttachmentbooth1"
+          }
+        ],
+        "/IoTCoreStack/CustomCertArn-booth-1": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCertArnbooth1"
+          }
+        ],
+        "/IoTCoreStack/NFCThing-booth-2": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "NFCThingbooth2"
+          }
+        ],
+        "/IoTCoreStack/CustomCertResource-booth-2": [
+          {
+            "type": "aws:cdk:analytics:construct",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          },
+          {
+            "type": "aws:cdk:analytics:method",
+            "data": "*"
+          }
+        ],
+        "/IoTCoreStack/CustomCertResource-booth-2/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCertResourcebooth2"
+          }
+        ],
+        "/IoTCoreStack/PolicyAttachment-booth-2": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "PolicyAttachmentbooth2"
+          }
+        ],
+        "/IoTCoreStack/ThingAttachment-booth-2": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ThingAttachmentbooth2"
+          }
+        ],
+        "/IoTCoreStack/CustomCertArn-booth-2": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CustomCertArnbooth2"
+          }
+        ],
+        "/IoTCoreStack/IoTThingName-booth-1": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTThingNamebooth1"
+          }
+        ],
+        "/IoTCoreStack/IoTThingName-booth-2": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTThingNamebooth2"
+          }
+        ],
+        "/IoTCoreStack/IoTPolicyName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTPolicyName"
+          }
+        ],
+        "/IoTCoreStack/DynamoDBTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DynamoDBTableName"
+          }
+        ],
+        "/IoTCoreStack/IoTEndpoint": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "IoTEndpoint"
+          }
+        ],
+        "/IoTCoreStack/CDKMetadata/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CDKMetadata"
+          }
+        ],
+        "/IoTCoreStack/BootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BootstrapVersion"
+          }
+        ],
+        "/IoTCoreStack/CheckBootstrapVersion": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CheckBootstrapVersion"
+          }
+        ]
+      },
+      "displayName": "IoTCoreStack"
+    },
+    "Tree": {
+      "type": "cdk:tree",
+      "properties": {
+        "file": "tree.json"
+      }
+    }
+  },
+  "minimumCliVersion": "2.1019.1"
+}

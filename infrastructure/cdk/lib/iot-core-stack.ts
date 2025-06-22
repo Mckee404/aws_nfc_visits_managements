@@ -2,6 +2,8 @@ import * as cdk from "aws-cdk-lib";
 import * as iot from "aws-cdk-lib/aws-iot";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as cr from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
 
 export class IoTCoreStack extends cdk.Stack {
@@ -93,111 +95,96 @@ export class IoTCoreStack extends cdk.Stack {
 		});
 
 		// デバイス毎に証明書とアタッチメントを作成
-		const certificates: { [key: string]: iot.CfnCertificate } = {};
 		const policyAttachments: iot.CfnPolicyPrincipalAttachment[] = [];
 		const thingAttachments: iot.CfnThingPrincipalAttachment[] = [];
 
+		// Lambda関数（Goコンテナイメージ）をデプロイ
+		const certHandlerLambda = new lambda.DockerImageFunction(
+			this,
+			"CertHandlerLambda",
+			{
+				code: lambda.DockerImageCode.fromImageAsset(
+					"../../services/cert_handler"
+				),
+				timeout: cdk.Duration.seconds(30),
+				memorySize: 256,
+				environment: {
+					// 必要に応じて環境変数を指定
+				},
+				architecture: cdk.aws_lambda.Architecture.ARM_64,
+			}
+		);
+
+		// LambdaにIoT証明書発行権限を付与
+		certHandlerLambda.addToRolePolicy(
+			new iam.PolicyStatement({
+				actions: [
+					"iot:CreateKeysAndCertificate",
+					"iot:AttachPolicy",
+					"iot:AttachThingPrincipal",
+					"iot:CreatePolicy",
+					"iot:DescribeCertificate",
+					"iot:UpdateCertificate",
+					"iot:ListPolicies",
+					"iot:ListThings",
+				],
+				resources: ["*"], // 必要に応じて絞る
+			})
+		);
+
+		// Custom Resource Provider
+		const certProvider = new cr.Provider(
+			this,
+			"CertCustomResourceProvider",
+			{
+				onEventHandler: certHandlerLambda,
+			}
+		);
+
+		// デバイスごとにCustom Resourceで証明書発行
 		for (const config of deviceConfigs) {
 			// IoT Thing作成
 			const nfcThing = new iot.CfnThing(this, `NFCThing-${config.id}`, {
 				thingName: config.id,
-				attributePayload: {
-					attributes: {
-						boothId: config.id,
-					},
-				},
+				attributePayload: { attributes: { boothId: config.id } },
 			});
 
-			// 証明書作成
-			const certificate = new iot.CfnCertificate(
+			// Custom Resourceで証明書発行
+			const certResource = new cdk.CustomResource(
 				this,
-				`NFCReaderCertificate-${config.id}`,
+				`CustomCertResource-${config.id}`,
 				{
-					status: "ACTIVE",
-					certificateSigningRequest: undefined, // CDKが自動生成
+					serviceToken: certProvider.serviceToken,
+					properties: { DeviceId: config.id },
 				}
 			);
-			certificates[config.id] = certificate;
 
-			// Policy と Certificate のアタッチメント
-			const policyAttachment = new iot.CfnPolicyPrincipalAttachment(
+			// Policyと証明書のアタッチメント
+			new iot.CfnPolicyPrincipalAttachment(
 				this,
 				`PolicyAttachment-${config.id}`,
 				{
 					policyName: iotPolicy.policyName!,
-					principal: certificate.attrArn,
+					principal: certResource.getAttString("CertificateArn"),
 				}
 			);
-			policyAttachments.push(policyAttachment);
 
-			// Certificate と Thing のアタッチメント
-			const thingAttachment = new iot.CfnThingPrincipalAttachment(
+			// Thingと証明書のアタッチメント
+			new iot.CfnThingPrincipalAttachment(
 				this,
 				`ThingAttachment-${config.id}`,
 				{
 					thingName: nfcThing.thingName!,
-					principal: certificate.attrArn,
+					principal: certResource.getAttString("CertificateArn"),
 				}
 			);
-			thingAttachments.push(thingAttachment);
 
-			// 証明書情報を出力
-			new cdk.CfnOutput(this, `CertificateArn-${config.id}`, {
-				value: certificate.attrArn,
-				description: `Certificate ARN for ${config.id}`,
-			});
-
-			new cdk.CfnOutput(this, `CertificateId-${config.id}`, {
-				value: certificate.ref,
-				description: `Certificate ID for ${config.id}`,
+			// 出力
+			new cdk.CfnOutput(this, `CustomCertArn-${config.id}`, {
+				value: certResource.getAttString("CertificateArn"),
+				description: `Custom Resource Certificate ARN for ${config.id}`,
 			});
 		}
-
-		// IoT Role for Rule Action
-		const iotRuleRole = new iam.Role(this, "IoTRuleRole", {
-			assumedBy: new iam.ServicePrincipal("iot.amazonaws.com"),
-			inlinePolicies: {
-				DynamoDBAccess: new iam.PolicyDocument({
-					statements: [
-						new iam.PolicyStatement({
-							effect: iam.Effect.ALLOW,
-							actions: [
-								"dynamodb:PutItem",
-								"dynamodb:UpdateItem",
-								"dynamodb:GetItem",
-								"dynamodb:Query",
-							],
-							resources: [
-								eventDataTable.tableArn,
-								`${eventDataTable.tableArn}/index/*`,
-							],
-						}),
-					],
-				}),
-			},
-		});
-
-		// IoT Rule 作成 - 訪問データをDynamoDBに保存
-		const visitRule = new iot.CfnTopicRule(this, "VisitRule", {
-			ruleName: "ProcessNFCVisits",
-			topicRulePayload: {
-				sql: "SELECT *, topic(3) as deviceId FROM 'nfc/visits/+'",
-				description: "Process NFC visit data and store in DynamoDB",
-				actions: [
-					{
-						dynamoDb: {
-							tableName: eventDataTable.tableName,
-							roleArn: iotRuleRole.roleArn,
-							hashKeyField: "PK",
-							hashKeyValue: "BOOTHS#${boothId}",
-							rangeKeyField: "SK",
-							rangeKeyValue: "RECORD#${timestamp}",
-						},
-					},
-				],
-				ruleDisabled: false,
-			},
-		});
 
 		for (const config of deviceConfigs) {
 			new cdk.CfnOutput(this, `IoTThingName-${config.id}`, {
