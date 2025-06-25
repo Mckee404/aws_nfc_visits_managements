@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/iot"
 	"github.com/aws/aws-sdk-go-v2/service/iot/types"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type CertificateData struct {
@@ -63,18 +66,18 @@ func handler(ctx context.Context, event CloudFormationCustomResourceEvent) (Clou
 }
 
 func handleCreate(ctx context.Context, client *iot.Client, event CloudFormationCustomResourceEvent) (CloudFormationCustomResourceResponse, error) {
-	deviceIdRaw, ok := event.ResourceProperties["DeviceId"]
+	boothIdRaw, ok := event.ResourceProperties["BoothId"]
 	if !ok {
-		log.Printf("DeviceId is missing in ResourceProperties")
-		return failureResponse(event, "DeviceId is missing in ResourceProperties"), nil
+		log.Printf("BoothId is missing in ResourceProperties")
+		return failureResponse(event, "BoothId is missing in ResourceProperties"), nil
 	}
-	deviceId, ok := deviceIdRaw.(string)
-	if !ok || deviceId == "" {
-		log.Printf("DeviceId is not a valid string: %v", deviceIdRaw)
-		return failureResponse(event, "DeviceId is not a valid string"), nil
+	boothId, ok := boothIdRaw.(string)
+	if !ok || boothId == "" {
+		log.Printf("BoothId is not a valid string: %v", boothIdRaw)
+		return failureResponse(event, "BoothId is not a valid string"), nil
 	}
 
-	log.Printf("Creating certificate for device: %s", deviceId)
+	log.Printf("Creating certificate for device: %s", boothId)
 
 	// 証明書とキーペア作成
 	result, err := client.CreateKeysAndCertificate(ctx, &iot.CreateKeysAndCertificateInput{
@@ -92,6 +95,7 @@ func handleCreate(ctx context.Context, client *iot.Client, event CloudFormationC
 
 	log.Printf("Certificate created successfully: %s", *result.CertificateId)
 
+	saveKeyPairToS3(ctx, boothId, *result.KeyPair)
 	// レスポンスデータ
 	data := map[string]interface{}{
 		"CertificateArn": *result.CertificateArn,
@@ -162,6 +166,41 @@ func failureResponse(event CloudFormationCustomResourceEvent, reason string) Clo
 		StackId:            event.StackId,
 		Data:               nil,
 	}
+}
+func saveKeyPairToS3(ctx context.Context, boothId string, keyPair types.KeyPair) error {
+	// AWS Configのロード
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		log.Printf("Failed to load AWS config for S3: %v", err)
+		return err
+	}
+
+	// S3クライアント作成
+	s3Client := s3.NewFromConfig(cfg)
+
+	// 公開鍵保存
+	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String("aws-nfc-visits-management-certs"),
+		Key:         aws.String(fmt.Sprintf("certs/%s-public.pem", boothId)),
+		Body:        strings.NewReader(aws.ToString(keyPair.PublicKey)),
+		ContentType: aws.String("application/x-pem-file"),
+	})
+	if err != nil {
+		log.Printf("Failed to save public key to S3: %v", err)
+		return err
+	}
+	// 秘密鍵保存
+	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String("aws-nfc-visits-management-certs"),
+		Key:         aws.String(fmt.Sprintf("certs/%s-private.pem", boothId)),
+		Body:        strings.NewReader(aws.ToString(keyPair.PrivateKey)),
+		ContentType: aws.String("application/x-pem-file"),
+	})
+	if err != nil {
+		log.Printf("Failed to save private key to S3: %v", err)
+		return err
+	}
+	return nil
 }
 
 func main() {

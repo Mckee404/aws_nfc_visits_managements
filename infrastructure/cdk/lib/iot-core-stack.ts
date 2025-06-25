@@ -4,6 +4,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as cr from "aws-cdk-lib/custom-resources";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 
 export class IoTCoreStack extends cdk.Stack {
@@ -14,10 +15,10 @@ export class IoTCoreStack extends cdk.Stack {
 		const eventDataTable = new dynamodb.Table(this, "EventDataTable", {
 			tableName: "EventData",
 			partitionKey: {
-				name: "partitionKey",
+				name: "PK",
 				type: dynamodb.AttributeType.STRING,
 			},
-			sortKey: { name: "sortKey", type: dynamodb.AttributeType.STRING },
+			sortKey: { name: "SK", type: dynamodb.AttributeType.STRING },
 			billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
 			removalPolicy: cdk.RemovalPolicy.DESTROY, // 開発用のため
 		});
@@ -54,6 +55,12 @@ export class IoTCoreStack extends cdk.Stack {
 			projectionType: dynamodb.ProjectionType.ALL, // ここは本番では最適化を検討
 		});
 
+		const errorBucket = new s3.Bucket(this, "ErrorBucket", {
+			bucketName: "aws-nfc-visits-management-error-logs",
+			removalPolicy: cdk.RemovalPolicy.DESTROY, // ←ここをDESTROYに
+			autoDeleteObjects: true,
+		});
+
 		const deviceConfigs = [{ id: "booth-1" }, { id: "booth-2" }];
 
 		// IoT Policy 作成（先に作成）
@@ -66,7 +73,7 @@ export class IoTCoreStack extends cdk.Stack {
 						Effect: "Allow",
 						Action: ["iot:Connect"],
 						Resource: [
-							`arn:aws:iot:${this.region}:${this.account}:client/nfc-reader-*`,
+							`arn:aws:iot:${this.region}:${this.account}:client/booth-*`,
 						],
 					},
 					{
@@ -94,9 +101,73 @@ export class IoTCoreStack extends cdk.Stack {
 			},
 		});
 
+		// IoT Rule用IAMロール
+		const iotRuleRole = new iam.Role(this, "IoTRuleRole", {
+			assumedBy: new iam.ServicePrincipal("iot.amazonaws.com"),
+			inlinePolicies: {
+				DynamoDBAccess: new iam.PolicyDocument({
+					statements: [
+						new iam.PolicyStatement({
+							effect: iam.Effect.ALLOW,
+							actions: [
+								"dynamodb:PutItem",
+								"dynamodb:UpdateItem",
+								"dynamodb:GetItem",
+								"dynamodb:Query",
+								"s3:PutObject",
+								"s3:PutObjectAcl",
+							],
+							resources: [
+								eventDataTable.tableArn,
+								`${eventDataTable.tableArn}/index/*`,
+								errorBucket.bucketArn,
+								errorBucket.bucketArn + "/*",
+							],
+						}),
+					],
+				}),
+			},
+		});
+
+		// IoT Rule作成（MQTTメッセージをDynamoDBに書き込む）
+		const visitRule = new iot.CfnTopicRule(this, "VisitRule", {
+			ruleName: "ProcessNFCVisits",
+			topicRulePayload: {
+				sql: "SELECT *, topic(3) as boothId, timestamp() as timestamp FROM 'nfc/visits/+'",
+				description: "Process NFC visit data and store in DynamoDB",
+				actions: [
+					{
+						dynamoDb: {
+							tableName: eventDataTable.tableName,
+							roleArn: iotRuleRole.roleArn,
+							hashKeyField: "PK",
+							hashKeyValue: "BOOTHS#${boothId}",
+							rangeKeyField: "SK",
+							rangeKeyValue: "RECORD#${timestamp}",
+						},
+					},
+				],
+				errorAction: {
+					s3: {
+						bucketName: errorBucket.bucketName, // エラーログ用S3バケット名
+						key: "iot-rule-errors/${timestamp()}-${UUID()}",
+						roleArn: iotRuleRole.roleArn,
+					},
+				},
+				ruleDisabled: false,
+			},
+		});
+
 		// デバイス毎に証明書とアタッチメントを作成
 		const policyAttachments: iot.CfnPolicyPrincipalAttachment[] = [];
 		const thingAttachments: iot.CfnThingPrincipalAttachment[] = [];
+
+		// S3バケット作成（バケット名はGo側と合わせること）
+		const certBucket = new s3.Bucket(this, "CertKeyBucket", {
+			bucketName: "aws-nfc-visits-management-certs",
+			removalPolicy: cdk.RemovalPolicy.DESTROY, // ←ここをDESTROYに
+			autoDeleteObjects: true,
+		});
 
 		// Lambda関数（Goコンテナイメージ）をデプロイ
 		const certHandlerLambda = new lambda.DockerImageFunction(
@@ -131,6 +202,13 @@ export class IoTCoreStack extends cdk.Stack {
 				resources: ["*"], // 必要に応じて絞る
 			})
 		);
+		// LambdaにS3書き込み権限を付与
+		certHandlerLambda.addToRolePolicy(
+			new iam.PolicyStatement({
+				actions: ["s3:PutObject", "s3:PutObjectAcl"],
+				resources: [certBucket.bucketArn + "/*"],
+			})
+		);
 
 		// Custom Resource Provider
 		const certProvider = new cr.Provider(
@@ -155,7 +233,7 @@ export class IoTCoreStack extends cdk.Stack {
 				`CustomCertResource-${config.id}`,
 				{
 					serviceToken: certProvider.serviceToken,
-					properties: { DeviceId: config.id },
+					properties: { BoothId: config.id },
 				}
 			);
 
@@ -201,11 +279,6 @@ export class IoTCoreStack extends cdk.Stack {
 		new cdk.CfnOutput(this, "DynamoDBTableName", {
 			value: eventDataTable.tableName,
 			description: "DynamoDB Table Name",
-		});
-
-		new cdk.CfnOutput(this, "IoTEndpoint", {
-			value: `https://${this.account}.iot.${this.region}.amazonaws.com`,
-			description: "IoT Core Endpoint",
 		});
 
 		// タグ付け
