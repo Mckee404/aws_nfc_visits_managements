@@ -8,11 +8,13 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 
 export class IoTCoreStack extends cdk.Stack {
+	public readonly eventDataTable: dynamodb.Table;
+
 	constructor(scope: Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
 
 		// DynamoDB テーブル作成
-		const eventDataTable = new dynamodb.Table(this, "EventDataTable", {
+		this.eventDataTable = new dynamodb.Table(this, "EventDataTable", {
 			tableName: "EventData",
 			partitionKey: {
 				name: "PK",
@@ -23,7 +25,7 @@ export class IoTCoreStack extends cdk.Stack {
 			removalPolicy: cdk.RemovalPolicy.DESTROY, // 開発用のため
 		});
 
-		eventDataTable.addGlobalSecondaryIndex({
+		this.eventDataTable.addGlobalSecondaryIndex({
 			indexName: "GSI1-GenericQueries", // より汎用的なアクセスパターンをサポートする意味合い
 			partitionKey: {
 				name: "GSI_1_PK",
@@ -42,7 +44,7 @@ export class IoTCoreStack extends cdk.Stack {
 		// GSI2: 特定の日付の全訪問履歴を時系列で取得 (ブースを問わず)
 		// PK: DATE#<YYYY-MM-DD>
 		// SK: RECORD#<timestamp>
-		eventDataTable.addGlobalSecondaryIndex({
+		this.eventDataTable.addGlobalSecondaryIndex({
 			indexName: "VisitRecordsByDateAndTimestamp", // 日付とタイムスタンプでアクセスする来場記録
 			partitionKey: {
 				name: "GSI_2_PK",
@@ -118,8 +120,8 @@ export class IoTCoreStack extends cdk.Stack {
 								"s3:PutObjectAcl",
 							],
 							resources: [
-								eventDataTable.tableArn,
-								`${eventDataTable.tableArn}/index/*`,
+								this.eventDataTable.tableArn,
+								`${this.eventDataTable.tableArn}/index/*`,
 								errorBucket.bucketArn,
 								errorBucket.bucketArn + "/*",
 							],
@@ -133,17 +135,17 @@ export class IoTCoreStack extends cdk.Stack {
 		const visitRule = new iot.CfnTopicRule(this, "VisitRule", {
 			ruleName: "ProcessNFCVisits",
 			topicRulePayload: {
-				sql: "SELECT *, topic(3) as boothId, timestamp() as timestamp FROM 'nfc/visits/+'",
+				sql: "SELECT boothId, nfcUid, topic(3) as boothId, timestamp() as timestamp, newuuid() as visitId FROM 'nfc/visits/+'",
 				description: "Process NFC visit data and store in DynamoDB",
 				actions: [
 					{
 						dynamoDb: {
-							tableName: eventDataTable.tableName,
+							tableName: this.eventDataTable.tableName,
 							roleArn: iotRuleRole.roleArn,
 							hashKeyField: "PK",
-							hashKeyValue: "BOOTHS#${boothId}",
+							hashKeyValue: "BOOTHS#${topic(3)}",
 							rangeKeyField: "SK",
-							rangeKeyValue: "RECORD#${timestamp}",
+							rangeKeyValue: "RECORD#${timestamp()}",
 						},
 					},
 				],
@@ -277,7 +279,7 @@ export class IoTCoreStack extends cdk.Stack {
 		});
 
 		new cdk.CfnOutput(this, "DynamoDBTableName", {
-			value: eventDataTable.tableName,
+			value: this.eventDataTable.tableName,
 			description: "DynamoDB Table Name",
 		});
 
