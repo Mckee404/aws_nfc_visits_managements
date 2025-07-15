@@ -135,7 +135,7 @@ export class IoTCoreStack extends cdk.Stack {
 		const visitRule = new iot.CfnTopicRule(this, "VisitRule", {
 			ruleName: "ProcessNFCVisits",
 			topicRulePayload: {
-				sql: "SELECT boothId, nfcUid, topic(3) as boothId, timestamp() as timestamp, newuuid() as visitId FROM 'nfc/visits/+'",
+				sql: "SELECT nfcUid, topic(3) as boothId, timestamp() as timestamp, newuuid() as visitId FROM 'nfc/visits/+'",
 				description: "Process NFC visit data and store in DynamoDB",
 				actions: [
 					{
@@ -146,6 +146,7 @@ export class IoTCoreStack extends cdk.Stack {
 							hashKeyValue: "BOOTHS#${topic(3)}",
 							rangeKeyField: "SK",
 							rangeKeyValue: "RECORD#${timestamp()}",
+							payloadField: "payload", // payloadフィールドにネストして書き込む
 						},
 					},
 				],
@@ -240,7 +241,7 @@ export class IoTCoreStack extends cdk.Stack {
 			);
 
 			// Policyと証明書のアタッチメント
-			new iot.CfnPolicyPrincipalAttachment(
+			const policyAttachment = new iot.CfnPolicyPrincipalAttachment(
 				this,
 				`PolicyAttachment-${config.id}`,
 				{
@@ -250,7 +251,7 @@ export class IoTCoreStack extends cdk.Stack {
 			);
 
 			// Thingと証明書のアタッチメント
-			new iot.CfnThingPrincipalAttachment(
+			const thingAttachment = new iot.CfnThingPrincipalAttachment(
 				this,
 				`ThingAttachment-${config.id}`,
 				{
@@ -258,6 +259,8 @@ export class IoTCoreStack extends cdk.Stack {
 					principal: certResource.getAttString("CertificateArn"),
 				}
 			);
+
+			
 
 			// 出力
 			new cdk.CfnOutput(this, `CustomCertArn-${config.id}`, {

@@ -12,7 +12,9 @@ const env = {
 
 const iotCoreStack = new IoTCoreStack(app, "IoTCoreStack", { env });
 
-new ApiLambdaStack(app, "ApiLambdaStack", {
+const apiLambdaStack = new ApiLambdaStack(app, "ApiLambdaStack", {
   env,
   eventDataTable: iotCoreStack.eventDataTable,
 });
+
+apiLambdaStack.addDependency(iotCoreStack);
