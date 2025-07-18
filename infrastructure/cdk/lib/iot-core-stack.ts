@@ -143,7 +143,7 @@ export class IoTCoreStack extends cdk.Stack {
 							tableName: this.eventDataTable.tableName,
 							roleArn: iotRuleRole.roleArn,
 							hashKeyField: "PK",
-							hashKeyValue: "BOOTHS#${topic(3)}",
+							hashKeyValue: "VISITS#${topic(3)}",
 							rangeKeyField: "SK",
 							rangeKeyValue: "RECORD#${timestamp()}",
 							payloadField: "payload", // payloadフィールドにネストして書き込む
